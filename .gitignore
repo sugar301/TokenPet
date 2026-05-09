@@ -1,0 +1,18 @@
+# Build
+bin/
+obj/
+*.user
+.vs/
+
+# Publish output
+publish/
+
+# Runtime data
+pet_data/pets/**
+pet_data/*.json
+pet_data/*.cfg
+pet_data/*.log
+
+# OS
+.DS_Store
+Thumbs.db

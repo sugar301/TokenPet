@@ -1,0 +1,59 @@
+<Window x:Class="TokenPet.Windows.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Token Pet 设置" Width="520" Height="440"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" Topmost="True"
+        ResizeMode="NoResize" ShowInTaskbar="False">
+    <Border CornerRadius="10" Background="#F01E1E1E" BorderBrush="#44FFFFFF" BorderThickness="1">
+        <Grid Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Button x:Name="CloseBtn" Content="✕"
+                    Background="Transparent" Foreground="Gray"
+                    BorderThickness="0" FontSize="14" Cursor="Hand"
+                    HorizontalAlignment="Right" Click="CloseBtn_Click"/>
+
+            <Grid Grid.Row="1" Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel x:Name="Sidebar" Margin="0,0,8,0">
+                    <Button x:Name="PetTabBtn" Content="宠物"
+                            Background="Transparent" Foreground="LightGray"
+                            BorderThickness="0" FontSize="12"
+                            HorizontalContentAlignment="Left"
+                            Padding="8,6,4,6" Cursor="Hand" Margin="0,0,0,2"
+                            Click="PetTabBtn_Click"/>
+                    <Button x:Name="ModelTabBtn" Content="模型"
+                            Background="Transparent" Foreground="LightGray"
+                            BorderThickness="0" FontSize="12"
+                            HorizontalContentAlignment="Left"
+                            Padding="8,6,4,6" Cursor="Hand" Margin="0,0,0,2"
+                            Click="ModelTabBtn_Click"/>
+                    <Button x:Name="StatsTabBtn" Content="统计"
+                            Background="Transparent" Foreground="LightGray"
+                            BorderThickness="0" FontSize="12"
+                            HorizontalContentAlignment="Left"
+                            Padding="8,6,4,6" Cursor="Hand" Margin="0,0,0,2"
+                            Click="StatsTabBtn_Click"/>
+                    <Button x:Name="AboutTabBtn" Content="关于"
+                            Background="Transparent" Foreground="LightGray"
+                            BorderThickness="0" FontSize="12"
+                            HorizontalContentAlignment="Left"
+                            Padding="8,6,4,6" Cursor="Hand" Margin="0,0,0,2"
+                            Click="AboutTabBtn_Click"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="TabContent"/>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <Authors>sugar.cool</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\pet_data\**" Link="pet_data\%(RecursiveDir)%(Filename)%(Extension)" Exclude="..\..\pet_data\pets\**;..\..\pet_data\*.log;..\..\pet_data\token_history.json;..\..\pet_data\pet_config.json;..\..\pet_data\proxy_targets.json;..\..\pet_data\*.cfg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Include="..\..\pet_data\pets\**">
+      <LogicalName>pets/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="favicon.ico">
+      <LogicalName>favicon.ico</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
