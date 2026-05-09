@@ -396,7 +396,7 @@ public partial class SettingsWindow : Window
     {
         var stack = new StackPanel();
         stack.Children.Add(SectionHeader("关于"));
-        stack.Children.Add(new TextBlock { Text = "TokenPet v1.0", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
+        stack.Children.Add(new TextBlock { Text = "TokenPet V1.0.0", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "基于 .NET 8.0 + WPF · 开源 MIT", Foreground = Brushes.Gray, FontSize = 11, Margin = new Thickness(0, 0, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "https://github.com/sugar301/TokenPet", Foreground = new SolidColorBrush(Color.FromRgb(100, 160, 220)), FontSize = 11, Margin = new Thickness(0, 0, 0, 2), Cursor = System.Windows.Input.Cursors.Hand });
         stack.Children.Add(new TextBlock { Text = "一个可爱的桌面宠物，支持动画、拖拽、AI Token 代理统计和多形象切换。", Foreground = Brushes.LightGray, FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 8) });
@@ -413,7 +413,7 @@ public partial class SettingsWindow : Window
   ""spritesheetPath"": ""spritesheet.webp""
 }";
         stack.Children.Add(new TextBlock { Text = jsonText, Foreground = Brushes.LightGray, FontSize = 10, FontFamily = new System.Windows.Media.FontFamily("Consolas"), Background = new SolidColorBrush(Color.FromRgb(35, 35, 40)), Padding = new Thickness(8), Margin = new Thickness(0, 4, 0, 4) });
-        stack.Children.Add(new TextBlock { Text = "ZIP 包内需包含 petjson.json + spritesheet.webp/png", Foreground = Brushes.Gray, FontSize = 10, Margin = new Thickness(0, 0, 0, 8) });
+        stack.Children.Add(new TextBlock { Text = "ZIP 包内需包含 pet.json + spritesheet.webp/png", Foreground = Brushes.Gray, FontSize = 10, Margin = new Thickness(0, 0, 0, 8) });
 
         stack.Children.Add(SectionHeader("动作触发说明"));
         var triggerText = @"待机 — 启动默认，状态恢复

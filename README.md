@@ -68,11 +68,11 @@ dotnet publish -c Release -p:PublishSingleFile=true -o ./publish
 ### 目录结构
 ```
 my_pet.zip
-├── petjson.json
+├── pet.json
 └── spritesheet.webp
 ```
 
-### petjson.json
+### pet.json
 ```json
 {
   "id": "my_pet",

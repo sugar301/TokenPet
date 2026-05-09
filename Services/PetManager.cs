@@ -58,15 +58,15 @@ public class PetManager
             using var archive = ZipFile.OpenRead(zipPath);
 
             var jsonEntry = archive.Entries.FirstOrDefault(e =>
-                e.Name.Equals("petjson.json", StringComparison.OrdinalIgnoreCase));
-            if (jsonEntry == null) return "缺少 petjson.json";
+                e.Name.Equals("pet.json", StringComparison.OrdinalIgnoreCase));
+            if (jsonEntry == null) return "缺少 pet.json";
 
             PetInfo? info;
             using (var stream = jsonEntry.Open())
             {
                 info = JsonSerializer.Deserialize<PetInfo>(stream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             }
-            if (info == null || string.IsNullOrWhiteSpace(info.Id)) return "petjson.json 无效";
+            if (info == null || string.IsNullOrWhiteSpace(info.Id)) return "pet.json 无效";
 
             var spriteEntry = archive.Entries.FirstOrDefault(e =>
             {
@@ -97,7 +97,7 @@ public class PetManager
                 spritesheetPath = info.SpritesheetPath
             };
             var jsonText = JsonSerializer.Serialize(newJson, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(Path.Combine(petDir, "petjson.json"), jsonText);
+            File.WriteAllText(Path.Combine(petDir, "pet.json"), jsonText);
 
             ScanPets();
             SetActivePet(info.Id);
@@ -164,7 +164,7 @@ public class PetManager
 
     private static PetInfo? LoadPetInfo(string dir)
     {
-        var jsonPath = Path.Combine(dir, "petjson.json");
+        var jsonPath = Path.Combine(dir, "pet.json");
         if (!File.Exists(jsonPath)) return null;
         try
         {
