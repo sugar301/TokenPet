@@ -7,6 +7,30 @@
 > 眼馋 Codex 的宠物功能，但不想换编辑器？TokenPet 让你在任何地方都有一只桌面小宠 🐱  
 > 完全兼容 **Codex Petdex 精灵表格式**，Codex 的宠物包直接导入就能用！
 
+## 🔧 工作原理
+
+TokenPet 在本地 `127.0.0.1` 启动一个 HTTP 代理，你的 AI 客户端只需把 API 地址指向代理端口，即可零侵入接入：
+
+```
+客户端 ──► http://127.0.0.1:11435/ds/v1/chat/completions
+              │
+              ▼  自动剥离 /ds 前缀，改写 Host
+         https://api.deepseek.com/v1/chat/completions
+              │
+              ▼  原样透传响应，实时统计 Token
+         客户端 ◄──  SSE 流式 / 常规 JSON
+```
+
+### 支持的响应格式
+- **SSE (Server-Sent Events)** — 流式输出，自动检测 `0\r\n\r\n` 终止符
+- **常规 JSON** — 非流式请求，按 Content-Length 读取完整响应
+- **Chunked / Gzip** — 自动 dechunk、解压后解析 Token 用量
+
+### Token 统计
+- 递归解析响应体中的 `usage` 对象，兼容 `prompt_tokens` / `completion_tokens` / `input_tokens` / `output_tokens`
+- 按日期 + 平台（DeepSeek / 千问 / OpenAI）分类记录
+- 可自定义代理前缀和转发目标，支持多平台同时追踪
+
 ## ✨ 它能做什么
 
 - 🎬 **9 种生动动画** — 待机、奔跑、挥手、跳跃、失败… 每只宠物自带精灵表
