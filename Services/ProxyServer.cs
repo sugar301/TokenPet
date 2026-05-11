@@ -282,26 +282,72 @@ public class ProxyServer
                 if (_targetSsl == null) return;
                 var buf = new byte[8192];
                 bool firstRead = true;
+                bool isChunked = false;
+                bool contentLengthKnown = false;
+                int expectedLength = 0;
+
                 while (true)
                 {
                     int read = await _targetSsl.ReadAsync(buf, 0, buf.Length);
                     if (read == 0) break;
+
                     if (firstRead)
                     {
                         firstRead = false;
                         _responseStatus = ParseHttpStatus(buf, read);
                         if (_responseStatus > 0)
                             ProxyServer.Log($"[rsp] {_responseStatus} {_matchedTarget}");
+
+                        // Parse response headers to determine framing
+                        var headerText = Encoding.ASCII.GetString(buf, 0, Math.Min(read, 2000));
+                        isChunked = headerText.Contains("Transfer-Encoding: chunked", StringComparison.OrdinalIgnoreCase);
+                        var clMatch = Regex.Match(headerText, @"Content-Length:\s*(\d+)", RegexOptions.IgnoreCase);
+                        if (clMatch.Success)
+                        {
+                            contentLengthKnown = true;
+                            expectedLength = int.Parse(clMatch.Groups[1].Value);
+                        }
                     }
+
                     _responseBuffer.Write(buf, 0, read);
                     await _clientStream.WriteAsync(buf, 0, read);
                     await _clientStream.FlushAsync();
 
-                    // Detect chunked terminator "0\r\n\r\n" — stop reading
-                    var all = _responseBuffer.GetBuffer();
-                    var len = (int)_responseBuffer.Length;
-                    if (FindBytes(all, len, "0\r\n\r\n"u8) >= 0)
-                        break;
+                    // --- Termination logic ---
+                    // Only use the chunked terminator trick for actual chunked responses.
+                    // For non-chunked responses, rely on TCP FIN (read==0) or Content-Length.
+                    if (isChunked)
+                    {
+                        // Check for the final "0\r\n\r\n" chunk — but verify it's a real
+                        // chunk boundary (preceded by \r\n) to avoid false positives from
+                        // the same byte sequence appearing inside chunk payload data.
+                        var all = _responseBuffer.GetBuffer();
+                        var len = (int)_responseBuffer.Length;
+                        int idx = FindBytes(all, len, "0\r\n\r\n"u8);
+                        if (idx >= 0)
+                        {
+                            // Must be preceded by \r\n (end of previous chunk's data) or be
+                            // at the very start of the body. This prevents matching literal
+                            // "0\r\n\r\n" inside a chunk's payload.
+                            bool validBoundary = (idx >= 2 && all[idx - 2] == '\r' && all[idx - 1] == '\n')
+                                                  || idx == 0;
+                            if (validBoundary)
+                                break;
+                        }
+                    }
+                    else if (contentLengthKnown)
+                    {
+                        // For non-chunked: check if we've received the full body.
+                        // Subtract header size from total received bytes.
+                        var headerEnd = FindBytes(_responseBuffer.GetBuffer(), (int)_responseBuffer.Length, "\r\n\r\n"u8);
+                        if (headerEnd >= 0)
+                        {
+                            int bodyReceived = (int)_responseBuffer.Length - (headerEnd + 4);
+                            if (bodyReceived >= expectedLength)
+                                break;
+                        }
+                    }
+                    // else: no Content-Length and not chunked (rare), read until FIN
                 }
             }
             catch { }
@@ -386,27 +432,74 @@ public class ProxyServer
             catch { }
         }
 
+        /// <summary>
+        /// Extract usage from the response JSON. Uses assignment (=) instead of
+        /// accumulation (+=) because some providers (Anthropic, Google) send usage
+        /// in multiple events — we want the last/final value, not the sum.
+        ///
+        /// Supported formats:
+        ///   OpenAI:    { "usage": { "prompt_tokens": N, "completion_tokens": N } }
+        ///   Anthropic: { "usage": { "input_tokens": N, "output_tokens": N,
+        ///              "cache_creation_input_tokens": N, "cache_read_input_tokens": N } }
+        ///   Google:    { "usageMetadata": { "promptTokenCount": N, "candidatesTokenCount": N } }
+        /// </summary>
         private void FindUsage(JsonElement element)
         {
-            if (element.ValueKind == JsonValueKind.Object)
+            if (element.ValueKind != JsonValueKind.Object) return;
+
+            // --- OpenAI / Anthropic format: "usage" object ---
+            if (element.TryGetProperty("usage", out var usage) && usage.ValueKind == JsonValueKind.Object)
             {
-                foreach (var p in element.EnumerateObject())
+                foreach (var u in usage.EnumerateObject())
                 {
-                    if (p.Name == "usage" && p.Value.ValueKind == JsonValueKind.Object)
+                    // prompt_tokens (OpenAI) / input_tokens (Anthropic)
+                    if (u.Name is "prompt_tokens" or "input_tokens")
                     {
-                        foreach (var u in p.Value.EnumerateObject())
-                        {
-                            if (u.Name == "prompt_tokens" || u.Name == "input_tokens")
-                            { long.TryParse(u.Value.GetRawText(), out var v); _inputTokens += v; }
-                            else if (u.Name == "completion_tokens" || u.Name == "output_tokens")
-                            { long.TryParse(u.Value.GetRawText(), out var v); _outputTokens += v; }
-                        }
+                        if (long.TryParse(u.Value.GetRawText(), out var v) && v > 0)
+                            _inputTokens = v;
                     }
-                    FindUsage(p.Value);
+                    // completion_tokens (OpenAI) / output_tokens (Anthropic)
+                    else if (u.Name is "completion_tokens" or "output_tokens")
+                    {
+                        if (long.TryParse(u.Value.GetRawText(), out var v) && v > 0)
+                            _outputTokens = v;
+                    }
+                    // Anthropic cache tokens — add to input for display purposes
+                    else if (u.Name is "cache_creation_input_tokens" or "cache_read_input_tokens")
+                    {
+                        // These are informational; the main input_tokens already includes
+                        // them on Anthropic's side, so we don't double-add.
+                    }
                 }
             }
-            else if (element.ValueKind == JsonValueKind.Array)
-                foreach (var item in element.EnumerateArray()) FindUsage(item);
+
+            // --- Google Gemini format: "usageMetadata" object ---
+            if (element.TryGetProperty("usageMetadata", out var meta) && meta.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var u in meta.EnumerateObject())
+                {
+                    if (u.Name is "promptTokenCount" or "prompt_token_count")
+                    {
+                        if (long.TryParse(u.Value.GetRawText(), out var v) && v > 0)
+                            _inputTokens = v;
+                    }
+                    else if (u.Name is "candidatesTokenCount" or "candidates_token_count")
+                    {
+                        if (long.TryParse(u.Value.GetRawText(), out var v) && v > 0)
+                            _outputTokens = v;
+                    }
+                }
+            }
+
+            // Recurse into nested objects/arrays (e.g. choices[].usage if any provider puts it there)
+            foreach (var p in element.EnumerateObject())
+            {
+                if (p.Value.ValueKind == JsonValueKind.Object)
+                    FindUsage(p.Value);
+                else if (p.Value.ValueKind == JsonValueKind.Array)
+                    foreach (var item in p.Value.EnumerateArray())
+                        FindUsage(item);
+            }
         }
 
         private static byte[] Dechunk(byte[] data)

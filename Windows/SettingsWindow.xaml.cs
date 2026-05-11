@@ -255,6 +255,7 @@ public partial class SettingsWindow : Window
             proxyStatus.Foreground = new SolidColorBrush(Color.FromRgb(60, 200, 60));
             _proxy?.Start(port, _proxy?.Targets ?? new List<ProxyTarget>());
             if (_app?.Config != null) { _app.Config.ProxyEnabled = true; _app.Config.ProxyPort = port; _app.Config.Save(); }
+            RefreshCurrentTab();
         };
         proxyToggle.Unchecked += (_, _) =>
         {
@@ -416,7 +417,7 @@ public partial class SettingsWindow : Window
     {
         var stack = new StackPanel();
         stack.Children.Add(SectionHeader("关于"));
-        stack.Children.Add(new TextBlock { Text = "TokenPet V1.0.1", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
+        stack.Children.Add(new TextBlock { Text = "TokenPet V1.0.2", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "基于 .NET 8.0 + WPF · 开源 MIT", Foreground = Brushes.Gray, FontSize = 11, Margin = new Thickness(0, 0, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "https://github.com/sugar301/TokenPet", Foreground = new SolidColorBrush(Color.FromRgb(100, 160, 220)), FontSize = 11, Margin = new Thickness(0, 0, 0, 2), Cursor = System.Windows.Input.Cursors.Hand });
         stack.Children.Add(new TextBlock { Text = "一个可爱的桌面宠物，支持动画、拖拽、AI Token 代理统计和多形象切换。", Foreground = Brushes.LightGray, FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 8) });
