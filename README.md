@@ -108,7 +108,7 @@ my_pet.zip
 - .NET 8.0 + WPF
 - SkiaSharp (WebP 解码)
 - P/Invoke 系统托盘
-- 内置 HTTP 代理 (SSE 流式 + 常规请求)
+- 内置 HTTP 代理 (SSE 流式 + REST请求)
 
 ## 📄 协议
 
