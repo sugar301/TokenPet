@@ -156,8 +156,28 @@ public partial class SettingsWindow : Window
                 rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 rowGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-                var thumbnail = MakeThumbnail(pet);
-                if (thumbnail != null) { Grid.SetColumn(thumbnail, 0); rowGrid.Children.Add(thumbnail); }
+                var thumbnail = new Border
+                {
+                    Width = 36, Height = 39, Background = Brushes.Transparent,
+                    Child = new System.Windows.Controls.Image { Width = 32, Height = 35, Stretch = Stretch.Uniform }
+                };
+                if (thumbnail.Child is System.Windows.Controls.Image img)
+                {
+                    var petDir = pet.Directory;
+                    var spritePath = pet.SpritesheetPath;
+                    Task.Run(() =>
+                    {
+                        var source = SpriteLoader.LoadSpritesheet(Path.Combine(petDir, spritePath));
+                        if (source != null && source.PixelWidth >= AnimationDefs.FrameWidth && source.PixelHeight >= AnimationDefs.FrameHeight)
+                        {
+                            var cropped = new CroppedBitmap(source, new Int32Rect(0, 0, AnimationDefs.FrameWidth, AnimationDefs.FrameHeight));
+                            cropped.Freeze();
+                            Dispatcher.Invoke(() => img.Source = cropped);
+                        }
+                    });
+                }
+                Grid.SetColumn(thumbnail, 0);
+                rowGrid.Children.Add(thumbnail);
 
                 var textStack = new StackPanel { Margin = new Thickness(8, 0, 0, 0) };
                 textStack.Children.Add(new TextBlock { Text = pet.DisplayName, Foreground = Brushes.White, FontSize = 12, FontWeight = FontWeights.Bold });
@@ -396,7 +416,7 @@ public partial class SettingsWindow : Window
     {
         var stack = new StackPanel();
         stack.Children.Add(SectionHeader("关于"));
-        stack.Children.Add(new TextBlock { Text = "TokenPet V1.0.0", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
+        stack.Children.Add(new TextBlock { Text = "TokenPet V1.0.1", Foreground = Brushes.White, FontSize = 14, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 8, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "基于 .NET 8.0 + WPF · 开源 MIT", Foreground = Brushes.Gray, FontSize = 11, Margin = new Thickness(0, 0, 0, 4) });
         stack.Children.Add(new TextBlock { Text = "https://github.com/sugar301/TokenPet", Foreground = new SolidColorBrush(Color.FromRgb(100, 160, 220)), FontSize = 11, Margin = new Thickness(0, 0, 0, 2), Cursor = System.Windows.Input.Cursors.Hand });
         stack.Children.Add(new TextBlock { Text = "一个可爱的桌面宠物，支持动画、拖拽、AI Token 代理统计和多形象切换。", Foreground = Brushes.LightGray, FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 8) });

@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+	<VersionPrefix>1.0.1</VersionPrefix>
+	<AssemblyName>TokenPet</AssemblyName>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
@@ -13,7 +15,6 @@
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <PublishReadyToRun>true</PublishReadyToRun>
     <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <Authors>sugar.cool</Authors>
   </PropertyGroup>
 
   <ItemGroup>
