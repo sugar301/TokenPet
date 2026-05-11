@@ -202,7 +202,7 @@ public class ProxyServer
                 : "";
             var isStream = bodyText.Contains("stream") && !bodyText.Contains("\"stream\":false")
                 || bodyText.Contains("\"stream\":true");
-            ProxyServer.Log($"[req] {(isStream ? "SSE" : "常规")} prefix={_matchedTarget}");
+            ProxyServer.Log($"[req] {(isStream ? "SSE" : "REST")} prefix={_matchedTarget}");
 
             _server.RequestReceived?.Invoke(_matchedTarget);
 
